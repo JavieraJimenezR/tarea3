@@ -1,11 +1,12 @@
+#include <algorithm>
+#include <chrono>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+
 #include "bloom_filter.hpp"
 #include "utils.hpp"
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <chrono>
-#include <algorithm>
 
 using namespace std;
 
@@ -17,8 +18,8 @@ int main() {
     // Tamaños de N y proporciones p a experimentar
     vector<size_t> N_values = {1024, 4096, 16384, 65536};  // 2^10, 2^12, 2^14, 2^16
     vector<double> p_values = {0.0, 0.25, 0.5, 0.75, 1.0};
-    vector<size_t> k_values = {3, 5, 7, 10}; // Diferentes valores de k para experimentar
-    vector<size_t> m_values = {5000, 10000, 20000}; // Diferentes tamaños del arreglo
+    vector<size_t> k_values = {3, 5, 7, 10};         // Diferentes valores de k para experimentar
+    vector<size_t> m_values = {5000, 10000, 20000};  // Diferentes tamaños del arreglo
 
     // Archivo de salida
     ofstream outputFile("resultados.csv");
@@ -51,20 +52,29 @@ int main() {
                     auto start_wb = chrono::high_resolution_clock::now();
                     for (const auto& name : testSequence) {
                         if (bloomFilter.contains(name)) {
-                          find(names.begin(), names.end(), name);
+                            find(names.begin(), names.end(), name);
                         }
                     }
                     auto end_wb = chrono::high_resolution_clock::now();
                     auto timeWithBloom = chrono::duration_cast<chrono::milliseconds>(end_wb - start_wb).count();
 
                     // Calcular porcentaje de error del filtro de Bloom
-                    size_t falsePositives = 0;
+                    size_t falsePositivesCount = 0;
+                    vector<string> falsePositives;
                     for (const auto& name : testSequence) {
                         if (bloomFilter.contains(name) && find(names.begin(), names.end(), name) == names.end()) {
-                            falsePositives++;
+                            falsePositives.push_back(name);
+                            falsePositivesCount++;
                         }
                     }
-                    double errorRate = static_cast<double>(falsePositives) / N;
+                    double errorRate = static_cast<double>(falsePositivesCount) / N;
+
+                    // Imprimir los falsos positivos
+                    cout << "Falsos positivos: ";
+                    for (const auto& name : falsePositives) {
+                        cout << name << ", ";
+                    }
+                    cout << endl;
 
                     // Guardar resultados en el archivo CSV
                     outputFile << N << "," << p << "," << k << "," << m << "," << timeWithoutBloom << "," << timeWithBloom << "," << errorRate * 100 << "\n";
