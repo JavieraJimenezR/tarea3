@@ -4,7 +4,7 @@ compile:
 	g++ -g -Wall -Wextra -O0 -std=c++20 main.cpp -o $(APP_PATH)
 
 run: compile
-	$(APP_PATH) $(or $(debug), 0) $(or $(root), 0)
+	$(APP_PATH)
 
 clean:
 	rm $(APP_PATH)
